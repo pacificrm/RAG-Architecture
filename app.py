@@ -1,5 +1,5 @@
 import streamlit as st
-from transformers import GPT2LMHeadModel
+# from transformers import GPT2LMHeadModel
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from transformers import AutoTokenizer, AutoModel
