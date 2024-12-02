@@ -164,10 +164,9 @@ def app():
             if query:
                 st.write(f"Searching for: {query}")
                 clear_cuda_memory()  # Clear CUDA memory before querying
-                device = torch.device("cpu")
                 model_name = "google/flan-t5-small"
                 # tokenizer = T5Tokenizer.from_pretrained(model_name)
-                model = T5ForConditionalGeneration.from_pretrained(model_name)
+                model = T5ForConditionalGeneration.from_pretrained(model_name).to(device)
                 # Generate query embeddings using T5
                 embeddings=HuggingFaceEmbeddings().to(device)
 
@@ -182,7 +181,6 @@ def app():
                 st.write(docs)
                 
                 # Format retrieved documents
-                # context = format_docs(docs)
                 retriever = vectorstore.as_retriever()
                 # Define RAG chain
                 rag_chain = (
