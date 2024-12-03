@@ -1,4 +1,4 @@
-# 🌟 Multimodal Document Processing with LangChain 🌟
+# 🌟 Multimodal Document Processing RAG with LangChain 🌟
 
 This project is a **Streamlit application** for processing multimodal documents and querying a **Milvus database**. It leverages cutting-edge tools like **LangChain**, **transformers**, **EasyOCR**, and others for processing, storing, and querying text extracted from various file types. 🚀
 
