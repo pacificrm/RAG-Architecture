@@ -1,11 +1,10 @@
 import streamlit as st
-# from transformers import GPT2LMHeadModel
 from langchain.schema import Document
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from transformers import AutoTokenizer, AutoModel
+from transformers import AutoTokenizer, AutoModel,AutoModelForSeq2SeqLM, AutoModelForCausalLM, pipeline
+from langchain.llms import HuggingFacePipeline
 from pymilvus import MilvusClient
 import torch
-from transformers import T5ForConditionalGeneration
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
@@ -23,6 +22,7 @@ from utils.document_loaders import (
 )
 
 
+
 # Function to clear CUDA memory
 def clear_cuda_memory():
     if torch.cuda.is_available():
@@ -31,7 +31,8 @@ def clear_cuda_memory():
         st.write("CUDA memory cleared successfully.")
 
 # Initialize device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 # st.write(f"Using device: {'GPU' if device.type == 'cuda' else 'CPU'}")
 
 # Clear CUDA memory before processing
@@ -44,33 +45,6 @@ client.create_collection(
     dimension=768
 )
 
-# Load Flan-T5 model and tokenizer
-model_name = "google/flan-t5-base"
-tokenizer = AutoTokenizer.from_pretrained(model_name)
-model = T5EncoderModel.from_pretrained(model_name).to(device)
-
-
-
-# Prompt template
-PROMPT_TEMPLATE = """
-Human: You are an AI assistant and provide answers to questions by using fact-based and statistical information when possible.
-Use the following pieces of information to provide a concise answer to the question enclosed in <question> tags.
-If you don't know the answer, just say that you don't know, don't try to make up an answer.
-<context>
-{context}
-</context>
-
-<question>
-{question}
-</question>
-
-The response should be specific and use statistics or numbers when possible.
-
-Assistant:"""
-
-prompt = PromptTemplate(
-    template=PROMPT_TEMPLATE, input_variables=["context", "question"]
-)
 
 # Function to format documents
 def format_docs(docs):
@@ -164,29 +138,116 @@ def app():
             if query:
                 st.write(f"Searching for: {query}")
                 clear_cuda_memory()  # Clear CUDA memory before querying
-                model_name = "google/flan-t5-small"
-                # tokenizer = T5Tokenizer.from_pretrained(model_name)
-                model = T5ForConditionalGeneration.from_pretrained(model_name).to(device)
-                # Generate query embeddings using T5
-                embeddings=HuggingFaceEmbeddings().to(device)
 
-                # Insert documents into Milvus
-                vectorstore = Milvus.from_documents(
-                    documents='text',
-                    embedding=embeddings,  # Pass the embeddings
+                embeddings=HuggingFaceEmbeddings()
+                
+                vectorstore = Milvus(
+                    embedding_function=embeddings,
                     connection_args={"uri": "./milvus_database.db"},
+                    collection_name="LangChainCollection",
                 )
                 # Perform similarity search using the query embedding
-                docs = vectorstore.similarity_search_by_vector(query, k=3)
-                st.write(docs)
+                # docs = vectorstore.similarity_search(query, k=2)
+                # docs = vectorstore.similarity_search_with_score(query,k=2)
                 
-                # Format retrieved documents
-                retriever = vectorstore.as_retriever()
-                # Define RAG chain
+                retriever = vectorstore.as_retriever(search_type="mmr", search_kwargs={"k": 1})
+                docs=retriever.invoke(query)
+                
+                st.write(docs)
+                device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+                model_name = "google/flan-t5-small"
+
+                # Load the tokenizer
+                tokenizer = AutoTokenizer.from_pretrained(
+                    model_name,
+                    token="hf_token")
+
+                # Load the model with proper arguments
+                model = AutoModelForSeq2SeqLM.from_pretrained(
+                    model_name,
+                    device_map='auto',
+                    torch_dtype=torch.float16,
+                    token="hf_token",
+                    load_in_8bit=True  # Enable 8-bit quantization
+                    # load_in_4bit=True  # Enable 4-bit quantization
+                )
+                
+
+                # Create a text-generation pipeline
+                pipe = pipeline(
+                    "text2text-generation",
+                    model=model,
+                    tokenizer=tokenizer,
+                    torch_dtype=torch.bfloat16,
+                    device_map="auto",
+                    max_new_tokens=512,
+                    do_sample=True,
+                    top_k=30,
+                    num_return_sequences=10,
+                    eos_token_id=tokenizer.eos_token_id
+                )
+
+                # Wrap the pipeline with HuggingFacePipeline for use with LangChain
+                llm = HuggingFacePipeline(pipeline=pipe, model_kwargs={'temperature': 0})
+                
+                # st.write(llm.predict('what is llms?'))
+###-------------------------------------LLama2------------------------------------------------------------------------------------
+                # model = "meta-llama/Llama-2-7b-chat-hf"
+                # tokenizer = AutoTokenizer.from_pretrained(
+                #             model,
+                #             token="hf_token",)
+
+
+                # model = AutoModelForCausalLM.from_pretrained(model,
+                #                         device_map='auto',
+                #                         torch_dtype=torch.float16,
+                #                         token="hf_token",
+                #                         # load_in_8bit=True,
+                #                         load_in_4bit=True
+                #                         )
+                
+                # pipe = pipeline("text-generation",
+                #                 model=model,
+                #                 tokenizer= tokenizer,
+                #                 torch_dtype=torch.bfloat16,
+                #                 device_map="auto",
+                #                 max_new_tokens = 512,
+                #                 do_sample=True,
+                #                 top_k=30,
+                #                 num_return_sequences=1,
+                #                 eos_token_id=tokenizer.eos_token_id
+                #                 )
+                
+                # llm=HuggingFacePipeline(pipeline=pipe, model_kwargs={'temperature':0})
+
+                
+                
+                
+                # Prompt template
+                PROMPT_TEMPLATE = """
+                Human: You are an AI assistant and provide answers to questions by using fact-based and statistical information when possible.
+                Use the following pieces of information to provide a concise answer to the question enclosed in <question> tags.
+                If you don't know the answer, just say that you don't know, don't try to make up an answer.
+                <context>
+                {context}
+                </context>
+
+                <question>
+                {question}
+                </question>
+
+                The response should be specific and use statistics or numbers when possible.
+
+                Assistant:"""
+
+                prompt = PromptTemplate(
+                    template=PROMPT_TEMPLATE, input_variables=["context", "question"]
+                )
                 rag_chain = (
                     {"context": retriever | format_docs, "question": RunnablePassthrough()}
                     | prompt
-                    | model
+                    | llm
                     | StrOutputParser()
                 )
                 

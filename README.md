@@ -7,6 +7,7 @@ This project is a **Streamlit application** for processing multimodal documents 
 ## ✨ Features
 
 ### 🗂️ **Upload File Processing**:
+
 - Supports multiple file types: `audio`, `video`, `image`, `text`, `csv`, `yaml`, `json`, `docx`, and `pdf`.
 - Extracts text content using:
   - 🔊 **Audio**: `speech_recognition` and `pydub`.
@@ -15,10 +16,12 @@ This project is a **Streamlit application** for processing multimodal documents 
   - 📄 **Text/Logs/Documents**: LangChain loaders.
 
 ### 🛠️ **Milvus Integration**:
+
 - 🗃️ Stores processed document embeddings for similarity-based querying.
 - 🧠 Utilizes `HuggingFaceEmbeddings` for generating vector representations.
 
 ### 🔍 **Query Interface**:
+
 - Natural language query interface.
 - Implements a **Retrieval-Augmented Generation (RAG)** pipeline for AI-driven responses.
 
@@ -27,22 +30,33 @@ This project is a **Streamlit application** for processing multimodal documents 
 ## 🛠️ Installation
 
 ### 🔧 Prerequisites
+
 - Python 3.8+
 - `pip` or `conda` package manager
 - CUDA-compatible GPU (optional, for faster processing)
 
-### 📥 Clone the Repository
-```bash
-git clone https://github.com/yourusername/multimodal-document-processing.git
-cd multimodal-document-processing
-```
+### 📥 Fork and Clone the Repository
+
+1. **Fork the repository**:
+   Navigate to [RAG-Architecture GitHub Repository](https://github.com/pacificrm/RAG-Architecture) and click **Fork**.
+
+2. **Clone the forked repository**:
+
+   ```bash
+   git clone https://github.com/<your-username>/RAG-Architecture.git
+   cd RAG-Architecture
+
+   ```
+
 # 📦 Install Dependencies
+
 ```bash
 pip install -r requirements.txt
 ```
-## 🚀 Usage
-### 🖥️ Start the Application
 
+## 🚀 Usage
+
+### 🖥️ Start the Application
 
 Run the Streamlit app:
 
@@ -52,16 +66,19 @@ streamlit run app.py
 
 ## 🔄 Application Modes
 
-### 📤  Upload Files:
+### 📤 Upload Files:
+
 - Upload a file to process and store its content in Milvus.
 - Displays extracted content and stores embeddings in the database.
 
 ### ❓ Query:
+
 - Enter a question to search and retrieve relevant information from the Milvus database.
 - Returns AI-generated responses using LangChain's RAG pipeline.
 
 ## 📁 File Structure
-```bash
+
+````bash
 ## 📁 **File Structure**
 
 ```bash
@@ -80,53 +97,60 @@ project/
 ├── Dataset                     # 📂 Folder to store datasets
 ├── Images                      # 📁 Folder for storing images
 
-```
+````
+
 🔑 **Key Modules**
 
 ### `app.py`
-🧩 **Main application logic**  
+
+🧩 **Main application logic**
+
 - Handles file uploads, document processing, and querying.
 
 ### `utils/`
-- 🎵 **Audio**: Splits audio into chunks and transcribes text.  
-- 📹 **Video**: Processes video files to extract and analyze content.  
-- 🖼️ **Image**: Uses EasyOCR for extracting text.  
+
+- 🎵 **Audio**: Splits audio into chunks and transcribes text.
+- 📹 **Video**: Processes video files to extract and analyze content.
+- 🖼️ **Image**: Uses EasyOCR for extracting text.
 - 📜 **Logs/Documents**: Processes CSV, YAML, JSON, and PDF files into structured LangChain documents.
 
 ---
 
 🛠️ **Example Workflow**
 
-
 ### 📤 **Uploading a File**
-1. Select **"Upload Files"** mode.  
-2. Upload a file (e.g., `example.pdf`).  
-3. Process and store the file in the database.  
+
+1. Select **"Upload Files"** mode.
+2. Upload a file (e.g., `example.pdf`).
+3. Process and store the file in the database.
 
 ### ❓ **Querying the Database**
-1. Select **"Query"** mode.  
-2. Enter a natural language question.  
-3. Receive a concise, fact-based response.  
+
+1. Select **"Query"** mode.
+2. Enter a natural language question.
+3. Receive a concise, fact-based response.
 
 ![RAG](Images/Flowcharts.png)
 
 ---
 
 🌟 **Future Improvements**
-- 🔍 Add more advanced query capabilities.  
-- 📂 Enhance support for additional file types and embeddings.  
-- ⚡ Improve scalability for larger datasets.  
+
+- 🔍 Add more advanced query capabilities.
+- 📂 Enhance support for additional file types and embeddings.
+- ⚡ Improve scalability for larger datasets.
 
 ---
 
 📜 **License**
-This project is licensed under the **MIT License**. See the LICENSE file for more information.
+This project is licensed under the **MIT License**.
 
 ---
 
 🙌 **Acknowledgments**
-- 🌐 **Streamlit** for the interactive UI.  
-- 📚 **LangChain** and **Milvus** for document processing, retrieval and vector db.  
-- 🤖 **Transformers** for embedding generation.  
-- 🖼️ **EasyOCR** for image text extraction.  
+
+- 🌐 **Streamlit** for the interactive UI.
+- 📚 **LangChain** and **Milvus** for document processing, retrieval and vector db.
+- 🤖 **Transformers** for embedding generation.
+- 🖼️ **EasyOCR** for image text extraction.
 - 📹 **Moviepy** for video processing.
